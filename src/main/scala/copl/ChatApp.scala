@@ -14,13 +14,12 @@ import rescala.default.*
 import rescala.extra.Tags.*
 import rescala.extra.distribution.Network
 import scalatags.JsDom.all.*
+import scalatags.JsDom.tags2.section
 import scalatags.JsDom.{Attr, TypedTag}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
-case class Chatline(author: String, message: String)
-
-case class Epoche[T](number: Int, payload: T)
+case class Chatline(name: String, message: String)
 
 @JSExportTopLevel("ChatApp")
 object ChatApp {
@@ -29,61 +28,56 @@ object ChatApp {
 
   given ReplicaId = ReplicaId.gen()
 
-  given epocheInstance[T: Lattice]: Lattice[Epoche[T]] = new Lattice[Epoche[T]] {
-    override def merge(left: Epoche[T], right: Epoche[T]): Epoche[T] =
-      if (left.number > right.number) left
-      else if (left.number < right.number) right
-      else Epoche(number = left.number, payload = Lattice[T].merge(left.payload, right.payload))
-  }
-
   @JSExport("start")
   def start(): Unit = {
-    val contents = getContents()
-    document.body.replaceChild(contents.render, document.body.firstChild)
+    val content: Tag = getContents()
+
+    document.body.replaceChild(content.render, document.body.firstChild)
+
     document.body.appendChild(p(style := "height: 3em").render)
     document.body.appendChild(WebRTCHandling(registry).webrtcHandlingArea.render)
   }
 
-  def getContents(): TypedTag[Div] = {
+  def getContents() = {
 
-    val nameInput = input(placeholder := "Your Name")
-    val (nameEvent, renderedName): (Event[String], Input) =
-      RenderUtil.inputFieldHandler(nameInput, oninput, clear = false)
-
-    val messageInput = input()
-    val (messageEvent, renderedMessage): (Event[String], Input) =
-      RenderUtil.inputFieldHandler(messageInput, onchange, clear = true)
-
-    val nameSignal: Signal[String] = Storing.storedAs("name", "") { init =>
-      renderedName.value = init
-      nameEvent.hold(init)
-    }
-
-    val chatline: Event[Chatline] = messageEvent.map { msg => Chatline(nameSignal.value, msg) }
-
-    val deleteAll = Evt[Unit]()
-
-    val history: Signal[Epoche[Dotted[ReplicatedList[Chatline]]]] =
-      Storing.storedAs("history", Epoche(0, Dotted(ReplicatedList.empty[Chatline]))) { initial =>
-        Fold(initial)(
-          chatline act { line => current merge current.copy(payload = current.payload.prepend(line)) },
-          deleteAll act { arg =>
-            current merge Epoche(number = current.number + 1, Dotted(ReplicatedList.empty[Chatline]))
-          }
-        )
+    val nameTag                      = input(placeholder := "<your name>")
+    val (nameEvent, nameData: Input) = RenderUtil.inputFieldHandler(nameTag, oninput, clear = false)
+    val nameS =
+      Storing.storedAs("name", "<unnamed>") { init =>
+        nameData.value = init
+        nameEvent.hold(init)
       }
+
+    val messageTag                  = input("<your message>")
+    val (messageEvent, messageData) = RenderUtil.inputFieldHandler(messageTag, onchange, clear = true)
+
+    val chatlineE = messageEvent.map(msg => Chatline(nameS.value, msg))
+
+    // The `Dotted` provides a context within a form of logical time is available.
+    // ReplicatedList makes use of that to make sure that multiple replicas never enter an inconsistent state
+    val history = Storing.storedAs("chathistory", Dotted(ReplicatedList.empty[Chatline])) {
+      init =>
+        Fold(init) {
+          // We need to `merge` the current value with the “change” that is produced by the prepend operation.
+          // I did not manage to explain the mechanism during the exercise session unfortunately,
+          // but roughly the idea is that ReplicatedList is designed in a way that any ”modifying operations”
+          // only return a description of teh change, not a full new state.
+          // Merging then gets us to the full state which the fold stores.
+          chatlineE act { chatline => current merge current.prepend(chatline) }
+        }
+    }
 
     Network.replicate(history, registry)(Binding("history"))
 
-    val chatDisplay = Signal.dynamic {
-      val reversedHistory = history.value.payload.toList.reverse
-      reversedHistory.map { case Chatline(author, message) =>
-        val styleString = if (chatline.value.contains(Chatline(author, message))) "color: red" else ""
-        p(s"${author}: $message", style := styleString)
-      }
+    val messages = history.map { chatlines =>
+      chatlines.data.toList.map(chatline => p(s"${chatline.name}: ${chatline.message}"))
     }
 
-    div(div(chatDisplay.asModifierL), renderedName, renderedMessage)
+    section(
+      nameData,
+      messageData,
+      messages.asModifierL
+    )
   }
 
 }
