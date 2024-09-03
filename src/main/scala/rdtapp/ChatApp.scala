@@ -1,6 +1,6 @@
-package copl
+package rdtapp
 
-import copl.Codecs.given
+import rdtapp.Codecs.given
 import org.scalajs.dom.html.{Div, Input, Paragraph}
 import org.scalajs.dom.{UIEvent, document, window}
 import rdts.base.LocalUid

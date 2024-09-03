@@ -1,4 +1,4 @@
-package copl
+package rdtapp
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import org.scalajs.dom

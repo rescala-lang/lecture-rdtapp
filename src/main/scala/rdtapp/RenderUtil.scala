@@ -1,4 +1,4 @@
-package copl
+package rdtapp
 
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Input
