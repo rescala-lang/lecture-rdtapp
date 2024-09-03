@@ -1,12 +1,12 @@
-package rdtapp
+package rdtapp.helpers
 
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReader, JsonValueCodec, JsonWriter, writeToString}
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import reactives.core.Tracing.RawWrapper
 import reactives.core.{ReInfo, ReSource, Tracing}
 import reactives.structure.Pulse
-import scala.scalajs.js
 
+import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 /** This file is to enable integration with the external inspector. */

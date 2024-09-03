@@ -1,9 +1,9 @@
-package rdtapp
+package rdtapp.helpers
 
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Input
-import reactives.default._
-import scalatags.JsDom.all._
+import reactives.default.*
+import scalatags.JsDom.all.*
 import scalatags.JsDom.{Attr, TypedTag}
 
 object RenderUtil {

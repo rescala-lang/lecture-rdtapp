@@ -1,7 +1,8 @@
-package rdtapp
+package rdtapp.helpers
 
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonKeyCodec, JsonReader, JsonValueCodec, JsonWriter}
 import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
+import rdtapp.Chatline
 import rdts.base.Uid
 import rdts.datatypes.TwoPhaseSet
 import rdts.datatypes.contextual.ReplicatedList

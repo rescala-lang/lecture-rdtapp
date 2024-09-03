@@ -1,4 +1,4 @@
-package rdtapp
+package rdtapp.helpers
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import org.scalajs.dom

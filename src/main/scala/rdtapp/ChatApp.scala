@@ -1,8 +1,9 @@
 package rdtapp
 
-import rdtapp.Codecs.given
+import rdtapp.helpers.Codecs.given
 import org.scalajs.dom.html.{Div, Input, Paragraph}
 import org.scalajs.dom.{UIEvent, document, window}
+import rdtapp.helpers.{RenderUtil, Storing}
 import rdts.base.LocalUid
 import rdts.datatypes.contextual.ReplicatedList
 import rdts.dotted.Dotted
