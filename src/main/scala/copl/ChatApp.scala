@@ -1,21 +1,17 @@
 package copl
 
 import copl.Codecs.given
-import kofre.base.Lattice
-import kofre.datatypes.contextual.ReplicatedList
-import kofre.dotted.Dotted
-import kofre.syntax.ReplicaId
-import loci.registry.{Binding, Registry}
-import loci.serializer.jsoniterScala.*
 import org.scalajs.dom.html.{Div, Input, Paragraph}
 import org.scalajs.dom.{UIEvent, document, window}
-import rescala.default
-import rescala.default.*
-import rescala.extra.Tags.*
-import rescala.extra.distribution.Network
+import rdts.base.LocalUid
+import rdts.datatypes.contextual.ReplicatedList
+import rdts.dotted.Dotted
+import reactives.operator.Fold
+import reactives.operator.Fold.current
 import scalatags.JsDom.all.*
 import scalatags.JsDom.tags2.section
 import scalatags.JsDom.{Attr, TypedTag}
+import reactives.extra.Tags.{reattach, given}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
@@ -24,18 +20,16 @@ case class Chatline(name: String, message: String)
 @JSExportTopLevel("ChatApp")
 object ChatApp {
 
-  val registry = new Registry
 
-  given ReplicaId = ReplicaId.gen()
+  given LocalUid = LocalUid.gen()
 
   @JSExport("start")
   def start(): Unit = {
-    val content: Tag = getContents()
+    val content = getContents()
 
-    document.body.replaceChild(content.render, document.body.firstChild)
+    document.body.replaceChild(content, document.body.firstChild)
 
     document.body.appendChild(p(style := "height: 3em").render)
-    document.body.appendChild(WebRTCHandling(registry).webrtcHandlingArea.render)
   }
 
   def getContents() = {
@@ -63,21 +57,20 @@ object ChatApp {
           // but roughly the idea is that ReplicatedList is designed in a way that any ”modifying operations”
           // only return a description of teh change, not a full new state.
           // Merging then gets us to the full state which the fold stores.
-          chatlineE act { chatline => current merge current.prepend(chatline) }
+          chatlineE branch { chatline => current `merge` current.mod(_.prepend(chatline)) }
         }
     }
 
-    Network.replicate(history, registry)(Binding("history"))
+    // TODO replicate
 
     val messages = history.map { chatlines =>
-      chatlines.data.toList.map(chatline => p(s"${chatline.name}: ${chatline.message}"))
+      chatlines.data.toList.map(chatline => p(s"${chatline.name}: ${chatline.message}").render)
     }
 
     section(
       nameData,
-      messageData,
-      messages.asModifierL
-    )
+      messageData
+    ).render.reattach(messages)
   }
 
 }

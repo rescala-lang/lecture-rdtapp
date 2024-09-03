@@ -2,12 +2,11 @@ package copl
 
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonKeyCodec, JsonReader, JsonValueCodec, JsonWriter}
 import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
-import kofre.base.Uid
-import kofre.datatypes.TwoPhaseSet
-import kofre.datatypes.contextual.ReplicatedList
-import kofre.dotted.Dotted
-import kofre.time.{Dot, Dots}
-import loci.transmitter.IdenticallyTransmittable
+import rdts.base.Uid
+import rdts.datatypes.TwoPhaseSet
+import rdts.datatypes.contextual.ReplicatedList
+import rdts.dotted.Dotted
+import rdts.time.{Dot, Dots}
 
 object Codecs {
 
@@ -18,8 +17,6 @@ object Codecs {
   given uidCodec: JsonValueCodec[Uid] = stringCodec.asInstanceOf[JsonValueCodec[Uid]]
 
   given listCodec: JsonValueCodec[List[Chatline]] = JsonCodecMaker.make[List[Chatline]]
-  given rgaTransmittable: IdenticallyTransmittable[Dotted[ReplicatedList[Chatline]]] =
-    IdenticallyTransmittable[Dotted[ReplicatedList[Chatline]]]()
 
   given dottedListCodec: JsonValueCodec[Dotted[ReplicatedList[Chatline]]] =
     JsonCodecMaker.make[Dotted[ReplicatedList[Chatline]]](CodecMakerConfig.withMapAsArray(true))

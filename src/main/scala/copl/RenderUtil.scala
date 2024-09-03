@@ -2,7 +2,7 @@ package copl
 
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Input
-import rescala.default._
+import reactives.default._
 import scalatags.JsDom.all._
 import scalatags.JsDom.{Attr, TypedTag}
 
