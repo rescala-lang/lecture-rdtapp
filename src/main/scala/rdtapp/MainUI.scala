@@ -21,7 +21,7 @@ case class ApplicationState(
 )
 
 object ApplicationState {
-  given lattice: Lattice[ApplicationState] = Lattice.derived
+  given Lattice[ApplicationState] = Lattice.derived
 
   given bottom: Bottom[ApplicationState] = Bottom.provide(ApplicationState())
 
@@ -52,14 +52,14 @@ object MainUI {
     )
 
   def getContents(): Div = {
+    val init = DeltaBuffer(ApplicationState())
 
-    val messageHandling = makeInputEvent("<your message to the world>")
-    val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
     val downvoteButton  = makeButtonEvent(Character.toString(0x1f44e))
+    val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
+    val messageHandling = makeInputEvent("<your message to the world>")
 
-    val replicatedState = {
-      val init = ApplicationState()
-      AppDataManager.hookup(init, identity, Some.apply) { (init, incoming) =>
+    val stateSignal = {
+      AppDataManager.hookup(ApplicationState(), identity, Some.apply) { (init, incoming) =>
         Fold(init)(
           resetBuffer,
           messageHandling.event.deltaBranch { inputText =>
@@ -79,7 +79,7 @@ object MainUI {
       }
     }
 
-    val appStateSignal = Signal { replicatedState.value.state }
+    val appStateSignal = Signal { stateSignal.value.state }
     val messageSignal = Signal {
       span(appStateSignal.value.message.value).render
     }
@@ -93,20 +93,10 @@ object MainUI {
     div(
       table(
         thead(
-          th("message to vote on"),
-          th("~~~~~"),
-          th(""),
-          th("upvotes"),
-          th(""),
-          th("downvotes"),
+          th("message to vote on"), th("~~~~~"), th(""), th("upvotes"), th(""), th("downvotes"),
         ),
         tr(
-          td.render.reattach(messageSignal),
-          td(),
-          td.render.reattach(upvotesSignal),
-          td(upvoteButton.data),
-          td.render.reattach(downvotesSignal),
-          td(downvoteButton.data)
+          td.render.reattach(messageSignal), td(), td.render.reattach(upvotesSignal), td(upvoteButton.data), td.render.reattach(downvotesSignal), td(downvoteButton.data)
         )
       ),
       p(messageHandling.data)

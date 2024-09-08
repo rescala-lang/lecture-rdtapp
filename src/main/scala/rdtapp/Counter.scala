@@ -3,12 +3,10 @@ package rdtapp
 import rdts.base.{Bottom, Lattice, LocalUid, Uid}
 
 object IntegerLattices {
-
-  given max: Lattice[Int]        = math.max
-  given min: Lattice[Int]        = math.min
-  given bitwiseOr: Lattice[Int]  = (x, y) => x | y
+  given max       : Lattice[Int] = math.max
+  given min       : Lattice[Int] = math.min
+  given bitwiseOr : Lattice[Int] = (x, y) => x | y
   given bitwiseAnd: Lattice[Int] = (x, y) => x & y
-
 }
 
 /** Core idea: Per replica counters */
