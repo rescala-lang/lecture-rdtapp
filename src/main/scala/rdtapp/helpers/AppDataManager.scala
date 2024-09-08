@@ -1,6 +1,6 @@
 package todo
 
-import rdtapp.{ApplicationState, MainUI}
+import rdtapp.{AppendOnlyList, ApplicationState, MainUI}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
 import reactives.operator.Event.CBR
@@ -25,11 +25,17 @@ object AppDataManager {
     (receivedCB, allCB, dm)
   }
 
+  def hookup(init: ApplicationState)(create: (
+      DeltaBuffer[ApplicationState],
+      Fold.Branch[DeltaBuffer[ApplicationState]]
+  ) => Signal[DeltaBuffer[ApplicationState]]): Signal[DeltaBuffer[ApplicationState]] =
+    hookup(init, identity, Some.apply)(create)
+
   def hookup[A: Lattice](
       init: A,
       wrap: A => ApplicationState,
       unwrap: ApplicationState => Option[A]
-  )(create: (DeltaBuffer[A], Fold.Branch[DeltaBuffer[A]]) => Signal[DeltaBuffer[A]]) = {
+  )(create: (DeltaBuffer[A], Fold.Branch[DeltaBuffer[A]]) => Signal[DeltaBuffer[A]]): Signal[DeltaBuffer[A]] = {
     dataManager.lock.synchronized {
       dataManager.applyUnrelatedDelta(wrap(init))
       val fullInit = dataManager.allDeltas.flatMap(v => unwrap(v.data)).foldLeft(init)(Lattice.merge)
