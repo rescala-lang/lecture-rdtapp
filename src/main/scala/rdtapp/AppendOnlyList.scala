@@ -42,13 +42,12 @@ object AppendOnlyList {
   }
 
   given hasDots[T]: HasDots[AppendOnlyList[T]] = HasDots.derived
-  given bottom[T]: Bottom[AppendOnlyList[T]] = Bottom.derived
+  given bottom[T]: Bottom[AppendOnlyList[T]]   = Bottom.derived
 }
-
 
 object Util {
   def deterministicToposort(graph: Map[Dot, Set[Dot]]): List[Dot] = {
-    val seen = collection.mutable.Set[Dot]()
+    val seen   = collection.mutable.Set[Dot]()
     val sorted = ListBuffer[Dot]()
 
     def toposortInner(next: Dot): Unit = {

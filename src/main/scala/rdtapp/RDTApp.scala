@@ -1,6 +1,8 @@
 package rdtapp
 
-import org.scalajs.dom.html.{Button, Paragraph}
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
+import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
+import org.scalajs.dom.html.Button
 import org.scalajs.dom.{UIEvent, document}
 import rdtapp.helpers.RenderUtil
 import rdts.base.{Bottom, Lattice, LocalUid}
@@ -10,6 +12,7 @@ import reactives.extra.Tags.reattach
 import reactives.operator.Event.CBR
 import reactives.operator.{Event, Fold, FoldState, Signal}
 import scalatags.JsDom.all.*
+import todo.AppDataManager
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
@@ -21,12 +24,17 @@ case class ApplicationState(
 
 object ApplicationState {
   given lattice: Lattice[ApplicationState] = Lattice.derived
+
+  given bottom: Bottom[ApplicationState] = Bottom.provide(ApplicationState())
+
+  given codec: JsonValueCodec[ApplicationState] = JsonCodecMaker.make(CodecMakerConfig.withMapAsArray(true))
+
 }
 
 @JSExportTopLevel("RDTApp")
 object RDTApp {
 
-  given LocalUid = LocalUid.gen()
+  given replicaId: LocalUid = LocalUid.gen()
 
   @JSExport("start")
   def start(): Unit = {
@@ -59,20 +67,26 @@ object RDTApp {
     val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
     val downvoteButton  = makeButtonEvent(Character.toString(0x1f44e))
 
-    val replicatedState = Fold(init = DeltaBuffer(ApplicationState()))(
-      messageHandling.event.deltaBranch { inputText =>
-        val messageDelta = Fold.current.message.write(inputText)
-        ApplicationState(message = messageDelta)
-      },
-      upvoteButton.event.deltaBranch { _ =>
-        val upvoteDelta = Fold.current.upvotes.add(1)
-        ApplicationState(upvotes = upvoteDelta)
-      },
-      downvoteButton.event.deltaBranch { _ =>
-        val downVoteDelta = Fold.current.downvotes.add(1)
-        ApplicationState(downvotes = downVoteDelta)
+    val replicatedState = {
+      val init = ApplicationState()
+      AppDataManager.hookup(init, identity, Some.apply) { (init, incoming) =>
+        Fold(init)(
+          messageHandling.event.deltaBranch { inputText =>
+            val messageDelta = Fold.current.message.write(inputText)
+            ApplicationState(message = messageDelta)
+          },
+          upvoteButton.event.deltaBranch { _ =>
+            val upvoteDelta = Fold.current.upvotes.add(1)
+            ApplicationState(upvotes = upvoteDelta)
+          },
+          downvoteButton.event.deltaBranch { _ =>
+            val downVoteDelta = Fold.current.downvotes.add(1)
+            ApplicationState(downvotes = downVoteDelta)
+          },
+          incoming
+        )
       }
-    )
+    }
 
     val appStateSignal = Signal { replicatedState.value.state }
     val messageSignal = Signal {
