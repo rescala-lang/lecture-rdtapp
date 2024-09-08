@@ -10,6 +10,7 @@ lazy val rdtapp = project.in(file("."))
       "com.lihaoyi"                           %%% "scalatags"             % "0.13.1",
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.9",
       "com.github.plokhotnyuk.jsoniter-scala"  %% "jsoniter-scala-macros" % "2.30.9",
+      "com.lihaoyi"                          %%% "pprint"                % "0.9.0",
       "org.scalameta"                         %%% "munit"                 % "1.0.1" % Test,
     ),
   )

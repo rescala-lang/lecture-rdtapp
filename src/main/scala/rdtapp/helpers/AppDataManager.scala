@@ -1,16 +1,28 @@
 package todo
 
-import rdtapp.{ApplicationState, RDTApp}
+import rdtapp.{ApplicationState, MainUI}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
 import reactives.operator.Event.CBR
 import reactives.operator.{Event, Fold, Signal}
-import replication.DataManager
+import replication.{DataManager, ProtocolDots}
 
 object AppDataManager {
 
-  val CBR(receivedCallback, dataManager: DataManager[ApplicationState]) = Event.fromCallback {
-    DataManager[ApplicationState](RDTApp.replicaId, Event.handle, _ => ())
+  val (
+    receivedCallback: Event[ApplicationState],
+    allCallback: Event[ProtocolDots[ApplicationState]],
+    dataManager: DataManager[ApplicationState]
+  ) = {
+    val CBR(receivedCB, (allCB, dm)) = Event.fromCallback {
+      val outerCb = Event.handle[ApplicationState]
+      val CBR(allcb, dm) = Event.fromCallback {
+        val innerCB = Event.handle[ProtocolDots[ApplicationState]]
+        DataManager[ApplicationState](MainUI.replicaId, outerCb, innerCB)
+      }
+      (allcb, dm)
+    }
+    (receivedCB, allCB, dm)
   }
 
   def hookup[A: Lattice](

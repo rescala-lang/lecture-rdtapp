@@ -23,7 +23,7 @@ object RenderUtil {
     }
 
     // note that the accessed value is NOT a reactive, there is a name clash with the JS library :-)
-    val inputFieldText = handler.event.map { _ => todoInputField.value.trim }
+    val inputFieldText = handler.event.map { _ => todoInputField.value }
 
     CBR(inputFieldText, todoInputField)
   }
