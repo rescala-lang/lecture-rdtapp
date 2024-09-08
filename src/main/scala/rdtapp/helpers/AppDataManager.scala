@@ -3,7 +3,6 @@ package todo
 import rdtapp.{ApplicationState, RDTApp}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
-import reactives.default.*
 import reactives.operator.Event.CBR
 import reactives.operator.{Event, Fold, Signal}
 import replication.DataManager
