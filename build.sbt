@@ -1,4 +1,4 @@
-lazy val chat = project.in(file("."))
+lazy val rdtapp = project.in(file("."))
   .enablePlugins(ScalaJSPlugin)
   .settings(
     scalaVersion := "3.5.0",
@@ -10,5 +10,6 @@ lazy val chat = project.in(file("."))
       // Below imports are required for the restoration and distribution.
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % "2.30.9",
       "com.github.plokhotnyuk.jsoniter-scala"  %% "jsoniter-scala-macros" % "2.30.9",
+      "org.scalameta"                         %%% "munit"                 % "1.0.1" % Test,
     ),
   )

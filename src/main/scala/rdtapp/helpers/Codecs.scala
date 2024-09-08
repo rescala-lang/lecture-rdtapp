@@ -1,13 +1,8 @@
 package rdtapp.helpers
 
-import com.github.plokhotnyuk.jsoniter_scala.core.{JsonKeyCodec, JsonReader, JsonValueCodec, JsonWriter}
-import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
-import rdtapp.Chatline
+import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReader, JsonValueCodec, JsonWriter}
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import rdts.base.Uid
-import rdts.datatypes.TwoPhaseSet
-import rdts.datatypes.contextual.ReplicatedList
-import rdts.dotted.Dotted
-import rdts.time.{Dot, Dots}
 
 object Codecs {
 
@@ -17,9 +12,5 @@ object Codecs {
   // We do need to know what the actual datatype is for the codec though
   given uidCodec: JsonValueCodec[Uid] = stringCodec.asInstanceOf[JsonValueCodec[Uid]]
 
-  given listCodec: JsonValueCodec[List[Chatline]] = JsonCodecMaker.make[List[Chatline]]
-
-  given dottedListCodec: JsonValueCodec[Dotted[ReplicatedList[Chatline]]] =
-    JsonCodecMaker.make[Dotted[ReplicatedList[Chatline]]](CodecMakerConfig.withMapAsArray(true))
 
 }
