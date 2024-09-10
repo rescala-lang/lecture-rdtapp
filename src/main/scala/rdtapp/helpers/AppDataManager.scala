@@ -1,6 +1,6 @@
 package todo
 
-import rdtapp.{AppendOnlyList, ApplicationState, MainUI}
+import rdtapp.{ApplicationState, MainUI}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
 import reactives.operator.Event.CBR

@@ -1,5 +1,6 @@
-package rdtapp
+package rdtapp.extra
 
+import rdtapp.extra.{AppendOnlyList, AppendOnlyNode, Util}
 import rdts.base.{Bottom, Lattice, LocalUid}
 import rdts.dotted.{Dotted, HasDots}
 import rdts.time.{Dot, Dots}
