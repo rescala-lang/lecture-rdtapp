@@ -1,5 +1,5 @@
-import rdtapp.AppendOnlyList
-import rdtapp.AppendOnlyList.given
+import rdtapp.extra.AppendOnlyList.given
+import rdtapp.extra.AppendOnlyList
 import rdts.base.LocalUid
 import rdts.dotted.Dotted
 

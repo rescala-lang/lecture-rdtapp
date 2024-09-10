@@ -1,12 +1,9 @@
 package rdtapp
 
-import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
-import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.{Button, Div}
 import rdtapp.helpers.RenderUtil
-import rdts.base.{Bottom, Lattice, LocalUid}
-import rdts.datatypes.LastWriterWins
+import rdts.base.{Lattice, LocalUid}
 import rdts.syntax.DeltaBuffer
 import reactives.extra.Tags.reattach
 import reactives.operator.Event.CBR
@@ -14,30 +11,18 @@ import reactives.operator.{Event, Fold, FoldState, Signal}
 import scalatags.JsDom.all.*
 import todo.AppDataManager
 
-case class ApplicationState(
-    message: LastWriterWins[String] = LastWriterWins.fallback(""),
-    upvotes: GrowOnlyCounter = GrowOnlyCounter.zero,
-    downvotes: GrowOnlyCounter = GrowOnlyCounter.zero
-)
-
-object ApplicationState {
-  given Lattice[ApplicationState] = Lattice.derived
-
-  given bottom: Bottom[ApplicationState] = Bottom.provide(ApplicationState())
-
-  given codec: JsonValueCodec[ApplicationState] = JsonCodecMaker.make(CodecMakerConfig.withMapAsArray(true))
-
-}
-
 object MainUI {
 
+  /** A `given` allows methods to find this by it’s type if it is in scope. */
   given replicaId: LocalUid = LocalUid.gen()
 
+  /** helper function to remove some boilerplate in the Fold below */
   extension [T](event: Event[T])
     def deltaBranch[S: Lattice](f: FoldState[S] ?=> T => S): Fold.Branch[DeltaBuffer[S]] = {
       event.branch { v => Fold.current.mod(app => f(using FoldState(app))(v)) }
     }
 
+  /** This resets the Delta buffer in the fold below, to not contain any deltas */
   def resetBuffer[T] = Fold.Branch[DeltaBuffer[T]](Nil, isStatic = false, _ => Fold.current.clearDeltas())
 
   def makeInputEvent(placeholderText: String) = RenderUtil.inputFieldHandler(
@@ -61,19 +46,22 @@ object MainUI {
     val stateSignal = {
       AppDataManager.hookup(ApplicationState(), identity, Some.apply) { (init, incoming) =>
         Fold(init)(
+          // In a slighly more friendly API, explicit reset would not be necessary.
+          // But this exists to clarify what is going on.
           resetBuffer,
+
+          // handling the UI messages
           messageHandling.event.deltaBranch { inputText =>
-            val messageDelta = Fold.current.message.write(inputText)
-            ApplicationState(message = messageDelta)
+            Fold.current.setMessage(inputText)
           },
           upvoteButton.event.deltaBranch { _ =>
-            val upvoteDelta = Fold.current.upvotes.add(1)
-            ApplicationState(upvotes = upvoteDelta)
+            Fold.current.like()
           },
           downvoteButton.event.deltaBranch { _ =>
-            val downVoteDelta = Fold.current.downvotes.add(1)
-            ApplicationState(downvotes = downVoteDelta)
+            Fold.current.dislike()
           },
+
+          // incoming are the incoming network event
           incoming
         )
       }
@@ -90,6 +78,7 @@ object MainUI {
       span(appStateSignal.value.downvotes.value).render
     }
 
+    /* Just a DSL to create some HTML */
     div(
       table(
         thead(
