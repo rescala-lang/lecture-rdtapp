@@ -37,20 +37,17 @@ object MainUI {
     )
 
   def getContents(): Div = {
-    val init = DeltaBuffer(MiniSocial())
 
     val downvoteButton  = makeButtonEvent(Character.toString(0x1f44e))
     val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
     val messageHandling = makeInputEvent("<your message to the world>")
 
-    val stateSignal = {
-      AppDataManager.hookup(MiniSocial(), identity, Some.apply) { (init, incoming) =>
-        Fold(init)(
-          // In a slighly more friendly API, explicit reset would not be necessary.
-          // But this exists to clarify what is going on.
-          resetBuffer,
+    val stateSignal: Signal[DeltaBuffer[MiniSocial]] = {
 
-          // handling the UI messages
+      AppDataManager.hookup(MiniSocial()) { (init, incoming) =>
+
+        Fold(init)(
+
           messageHandling.event.deltaBranch { inputText =>
             Fold.current.setMessage(inputText)
           },
@@ -61,7 +58,6 @@ object MainUI {
             Fold.current.dislike()
           },
 
-          // incoming are the incoming network event
           incoming
         )
       }
