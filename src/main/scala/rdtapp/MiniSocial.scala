@@ -6,6 +6,7 @@ import rdts.base.{Bottom, Lattice, LocalUid}
 import rdts.datatypes.LastWriterWins
 
 object MiniSocial {
+
   given Lattice[MiniSocial] = Lattice.derived
 
   // needed by the replication manager to handle some special cases

@@ -7,6 +7,7 @@ import reactives.operator.Event.CBR
 import reactives.operator.{Event, Fold, Signal}
 import replication.{DataManager, ProtocolDots}
 
+
 object AppDataManager {
 
   val (
