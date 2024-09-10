@@ -1,6 +1,6 @@
 package todo
 
-import rdtapp.{ApplicationState, MainUI}
+import rdtapp.{MiniSocial, MainUI}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
 import reactives.operator.Event.CBR
@@ -10,31 +10,31 @@ import replication.{DataManager, ProtocolDots}
 object AppDataManager {
 
   val (
-    receivedCallback: Event[ApplicationState],
-    allCallback: Event[ProtocolDots[ApplicationState]],
-    dataManager: DataManager[ApplicationState]
+    receivedCallback: Event[MiniSocial],
+    allCallback: Event[ProtocolDots[MiniSocial]],
+    dataManager: DataManager[MiniSocial]
   ) = {
     val CBR(receivedCB, (allCB, dm)) = Event.fromCallback {
-      val outerCb = Event.handle[ApplicationState]
+      val outerCb = Event.handle[MiniSocial]
       val CBR(allcb, dm) = Event.fromCallback {
-        val innerCB = Event.handle[ProtocolDots[ApplicationState]]
-        DataManager[ApplicationState](MainUI.replicaId, outerCb, innerCB)
+        val innerCB = Event.handle[ProtocolDots[MiniSocial]]
+        DataManager[MiniSocial](MainUI.replicaId, outerCb, innerCB)
       }
       (allcb, dm)
     }
     (receivedCB, allCB, dm)
   }
 
-  def hookup(init: ApplicationState)(create: (
-      DeltaBuffer[ApplicationState],
-      Fold.Branch[DeltaBuffer[ApplicationState]]
-  ) => Signal[DeltaBuffer[ApplicationState]]): Signal[DeltaBuffer[ApplicationState]] =
+  def hookup(init: MiniSocial)(create: (
+      DeltaBuffer[MiniSocial],
+      Fold.Branch[DeltaBuffer[MiniSocial]]
+  ) => Signal[DeltaBuffer[MiniSocial]]): Signal[DeltaBuffer[MiniSocial]] =
     hookup(init, identity, Some.apply)(create)
 
   def hookup[A: Lattice](
       init: A,
-      wrap: A => ApplicationState,
-      unwrap: ApplicationState => Option[A]
+      wrap: A => MiniSocial,
+      unwrap: MiniSocial => Option[A]
   )(create: (DeltaBuffer[A], Fold.Branch[DeltaBuffer[A]]) => Signal[DeltaBuffer[A]]): Signal[DeltaBuffer[A]] = {
     dataManager.lock.synchronized {
       dataManager.applyUnrelatedDelta(wrap(init))

@@ -37,14 +37,14 @@ object MainUI {
     )
 
   def getContents(): Div = {
-    val init = DeltaBuffer(ApplicationState())
+    val init = DeltaBuffer(MiniSocial())
 
     val downvoteButton  = makeButtonEvent(Character.toString(0x1f44e))
     val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
     val messageHandling = makeInputEvent("<your message to the world>")
 
     val stateSignal = {
-      AppDataManager.hookup(ApplicationState(), identity, Some.apply) { (init, incoming) =>
+      AppDataManager.hookup(MiniSocial(), identity, Some.apply) { (init, incoming) =>
         Fold(init)(
           // In a slighly more friendly API, explicit reset would not be necessary.
           // But this exists to clarify what is going on.
