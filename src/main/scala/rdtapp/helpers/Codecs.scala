@@ -2,7 +2,7 @@ package rdtapp.helpers
 
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReader, JsonValueCodec, JsonWriter}
 import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
-import rdtapp.ApplicationState
+import rdtapp.MiniSocial
 import rdts.base.Uid
 
 object Codecs {

@@ -2,13 +2,6 @@ package rdtapp
 
 import rdts.base.{Bottom, Lattice, LocalUid, Uid}
 
-object IntegerLattices {
-  given max       : Lattice[Int] = math.max
-  given min       : Lattice[Int] = math.min
-  given bitwiseOr : Lattice[Int] = (x, y) => x | y
-  given bitwiseAnd: Lattice[Int] = (x, y) => x & y
-}
-
 /** Core idea: Per replica counters */
 case class GrowOnlyCounter(entries: Map[Uid, Int]) {
 
@@ -26,7 +19,7 @@ case class GrowOnlyCounter(entries: Map[Uid, Int]) {
 
 object GrowOnlyCounter {
 
-  import rdtapp.IntegerLattices.max
+  import rdtapp.extra.IntegerLattices.max
 
   given Lattice[GrowOnlyCounter] = Lattice.derived
 
@@ -71,7 +64,10 @@ object Examples {
 
     val result = start.merge(delta1).merge(delta2)
 
-    val reordered = delta2.merge(delta1).merge(delta1)
+    val reordered = delta2.merge(delta1).merge(delta1).merge(start)
+
+    println(result)
+    println(reordered)
 
     assert(result == reordered)
 
