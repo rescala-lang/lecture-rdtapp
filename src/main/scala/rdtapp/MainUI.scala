@@ -39,25 +39,18 @@ object MainUI {
   def getContents(): Div = {
 
     val downvoteButton  = makeButtonEvent(Character.toString(0x1f44e))
-    val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
     val messageHandling = makeInputEvent("<your message to the world>")
 
     val stateSignal: Signal[DeltaBuffer[MiniSocial]] = {
 
       AppDataManager.hookup(MiniSocial()) { (init, incoming) =>
-
         Fold(init)(
-
           messageHandling.event.deltaBranch { inputText =>
             Fold.current.setMessage(inputText)
-          },
-          upvoteButton.event.deltaBranch { _ =>
-            Fold.current.like()
           },
           downvoteButton.event.deltaBranch { _ =>
             Fold.current.dislike()
           },
-
           incoming
         )
       }
@@ -67,9 +60,6 @@ object MainUI {
     val messageSignal = Signal {
       span(appStateSignal.value.message.value).render
     }
-    val upvotesSignal = Signal {
-      span(appStateSignal.value.upvotes.value).render
-    }
     val downvotesSignal = Signal {
       span(appStateSignal.value.downvotes.value).render
     }
@@ -78,10 +68,18 @@ object MainUI {
     div(
       table(
         thead(
-          th("message to vote on"), th("~~~~~"), th(""), th("upvotes"), th(""), th("downvotes"),
+          th("message to vote on"),
+          th("~~~~~"),
+          th(""),
+          th("upvotes"),
+          th(""),
+          th("downvotes"),
         ),
         tr(
-          td.render.reattach(messageSignal), td(), td.render.reattach(upvotesSignal), td(upvoteButton.data), td.render.reattach(downvotesSignal), td(downvoteButton.data)
+          td.render.reattach(messageSignal),
+          td(),
+          td.render.reattach(downvotesSignal),
+          td(downvoteButton.data)
         )
       ),
       p(messageHandling.data)

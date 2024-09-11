@@ -2,19 +2,16 @@ package rdtapp
 
 import rdts.base.{Bottom, Lattice, LocalUid, Uid}
 
-/** Core idea: Per replica counters */
-case class GrowOnlyCounter(entries: Map[Uid, Int]) {
+/** Core idea: Per replica counters, current value is the sum of each counter. */
+case class GrowOnlyCounter(/* put inner values of the data type here */) {
 
   /** We use immutable values for RDTs, where mutations are represented as new values.
     * To make replication more efficient, the new value only contains the changed part of the state (the updated entry)
     */
-  def add(n: Int)(using replicaId: LocalUid): GrowOnlyCounter =
-    val currentValue   = entries.getOrElse(replicaId.uid, 0)
-    val increasedValue = currentValue + n
-    GrowOnlyCounter(Map(replicaId.uid -> increasedValue))
+  def add(n: Int)(using replicaId: LocalUid): GrowOnlyCounter = ???
 
-  /** Get the semantic value of the counter, by summing all the individual counts at each replica! */
-  def value: Int = entries.values.sum
+  /** Get the value of the counter, by summing all the individual counts at each replica */
+  def value: Int = ???
 }
 
 object GrowOnlyCounter {
@@ -25,7 +22,7 @@ object GrowOnlyCounter {
 
   given Bottom[GrowOnlyCounter] = Bottom.provide(zero)
 
-  def zero: GrowOnlyCounter = GrowOnlyCounter(Map.empty)
+  def zero: GrowOnlyCounter = GrowOnlyCounter()
 }
 
 object Examples {
