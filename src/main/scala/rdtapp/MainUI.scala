@@ -45,6 +45,8 @@ object MainUI {
 
       AppDataManager.hookup(MiniSocial()) { (init, incoming) =>
         Fold(init)(
+          resetBuffer,
+
           messageHandling.event.deltaBranch { inputText =>
             Fold.current.setMessage(inputText)
           },
