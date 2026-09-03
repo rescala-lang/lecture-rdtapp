@@ -1,0 +1,45 @@
+/* This file is shared between multiple projects
+ * and may contain unused dependencies */
+
+import sbt.*
+import sbt.Keys.*
+
+import java.nio.file.Path
+
+// Extending sbt.AutoPlugin causes this plugin to be automatically added to all sbt projects that match the triggers.
+// And because we don’t really specify any triggers, it is just added everywhere.
+object JarExport extends sbt.AutoPlugin {
+  override def trigger = allRequirements
+
+  object autoImport {
+    // a “task key” is something you can execute on the sbt commandline,
+    // thus, this makes `stageJars` available like `compile` or `run`
+    // though, it does not yet define behaviour
+    val packageJars = TaskKey[File]("packageJars", "copies classpath jars to a file in the target dir")
+
+    val packageJarsPath = SettingKey[String]("packageJarsPath", "The file to write the jars to.")
+  }
+
+  import autoImport.*
+
+  // This defines settings the plugin makes.
+  // It is essentially the same as if this was in a `.settings()` block in the build.sbt
+  override lazy val projectSettings: Seq[Setting[?]] = Seq(
+    packageJarsPath := target.value.toPath.resolve("jars").toString,
+    // copy all jars required in the class path to a `jars` folder in the target directory
+    packageJars := Def.uncached {
+      val converter  = fileConverter.value
+      val cp         = (Compile / fullClasspathAsJars).value
+      val targetpath = Path.of(packageJarsPath.value)
+      IO.delete(targetpath.toFile)
+      IO.createDirectory(targetpath.toFile)
+      cp.foreach { at =>
+        val src = converter.toPath(at.data)
+        IO.copyFile(src.toFile, targetpath.resolve(src.getFileName).toFile)
+      }
+      // the return value is what `show stageJars` will display
+      targetpath.toFile
+    }
+  )
+
+}
