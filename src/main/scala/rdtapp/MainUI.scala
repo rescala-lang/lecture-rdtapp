@@ -37,6 +37,7 @@ object MainUI {
 
   def getContents(): Div = {
 
+    val upvoteButton    = makeButtonEvent(Character.toString(0x1f44d))
     val downvoteButton  = makeButtonEvent(Character.toString(0x1f44e))
     val messageHandling = makeInputEvent("<your message to the world>")
 
@@ -48,6 +49,9 @@ object MainUI {
 
           messageHandling.event.deltaBranch { inputText =>
             Fold.current.setMessage(inputText)
+          },
+          upvoteButton.event.deltaBranch { _ =>
+            Fold.current.like()
           },
           downvoteButton.event.deltaBranch { _ =>
             Fold.current.dislike()
@@ -61,6 +65,9 @@ object MainUI {
     val messageSignal = Signal {
       span(appStateSignal.value.message.value).render
     }
+    val upvotesSignal = Signal {
+      span(appStateSignal.value.upvotes.value).render
+    }
     val downvotesSignal = Signal {
       span(appStateSignal.value.downvotes.value).render
     }
@@ -70,17 +77,17 @@ object MainUI {
       table(
         thead(
           th("message to vote on"),
-          th("~~~~~"),
-          th(""),
           th("upvotes"),
-          th(""),
           th("downvotes"),
+          th(""),
+          th(""),
         ),
         tr(
           td.render.reattach(messageSignal),
-          td(),
+          td.render.reattach(upvotesSignal),
           td.render.reattach(downvotesSignal),
-          td(downvoteButton.data)
+          td(upvoteButton.data),
+          td(downvoteButton.data),
         )
       ),
       p(messageHandling.data)

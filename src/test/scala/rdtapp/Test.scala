@@ -1,6 +1,7 @@
 import rdtapp.extra.AppendOnlyList.given
 import rdtapp.extra.AppendOnlyList
-import rdts.base.LocalUid
+import rdtapp.GrowOnlyCounter
+import rdts.base.{LocalUid, Uid}
 import rdts.syntax.DeltaBuffer
 
 class Test extends munit.FunSuite {
@@ -30,5 +31,24 @@ class Test extends munit.FunSuite {
     assert(ids.indexOf("3a") < ids.indexOf("4a"), "3a must appear before its successor 4a")
     // the concurrent branch 3b (created on a different replica) may be placed anywhere after 2
     assert(ids.indexOf("2") < ids.indexOf("3b"), "3b must appear after 2")
+  }
+
+  test("grow-only-counter") {
+    import rdts.base.Lattice.merge
+
+    val start = GrowOnlyCounter.zero.add(10)(using Uid.zero)
+
+    val r1 = LocalUid.gen()
+    val r2 = LocalUid.gen()
+
+    val delta1 = { given LocalUid = r1; start.add(2) }
+    val delta2 = { given LocalUid = r2; start.add(5) }
+
+    val result    = start.merge(delta1).merge(delta2)
+    val reordered = delta2.merge(delta1).merge(delta1).merge(start)
+
+    assertEquals(result, reordered)
+    // start counts 10 (on Uid.zero), r1 added 2, r2 added 5
+    assertEquals(result.value, 10 + 2 + 5)
   }
 }
