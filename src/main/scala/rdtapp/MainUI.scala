@@ -6,7 +6,6 @@ import rdtapp.helpers.RenderUtil
 import rdts.base.{Lattice, LocalUid}
 import rdts.syntax.DeltaBuffer
 import reactives.extra.Tags.reattach
-import reactives.operator.Event.CBR
 import reactives.operator.{Event, Fold, FoldState, Signal}
 import scalatags.JsDom.all.*
 import todo.AppDataManager
@@ -31,7 +30,7 @@ object MainUI {
     clear = false
   )
 
-  def makeButtonEvent(description: String): CBR[UIEvent, Button] =
+  def makeButtonEvent(description: String): (event: Event[UIEvent], data: Button) =
     Event.fromCallback[org.scalajs.dom.html.Button, UIEvent](
       button(description, onclick := Event.handle).render
     )

@@ -12,7 +12,7 @@ object RenderUtil {
       tag: TypedTag[Input],
       attr: Attr,
       clear: Boolean = true
-  ): CBR[String, org.scalajs.dom.html.Input] = {
+  ): (event: Event[String], data: org.scalajs.dom.html.Input) = {
     val handler               = Event.fromCallback[TypedTag[Input], UIEvent](tag(attr := Event.handle))
     val todoInputField: Input = handler.data.render
 
@@ -25,6 +25,6 @@ object RenderUtil {
     // note that the accessed value is NOT a reactive, there is a name clash with the JS library :-)
     val inputFieldText = handler.event.map { _ => todoInputField.value }
 
-    CBR(inputFieldText, todoInputField)
+    (inputFieldText, todoInputField)
   }
 }

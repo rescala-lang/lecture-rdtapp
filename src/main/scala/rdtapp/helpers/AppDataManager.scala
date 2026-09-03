@@ -3,9 +3,8 @@ package todo
 import rdtapp.{MiniSocial, MainUI}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
-import reactives.operator.Event.CBR
 import reactives.operator.{Event, Fold, Signal}
-import replication.{DataManager, ProtocolDots}
+// import replication.{DataManager, ProtocolDots}
 
 
 object AppDataManager {
