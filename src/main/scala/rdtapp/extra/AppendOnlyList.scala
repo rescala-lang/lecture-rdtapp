@@ -29,9 +29,11 @@ case class AppendOnlyList[T](entries: Map[Dot, AppendOnlyNode[T]]) {
     entries.keys.filter(dot => !referredTo.contains(dot)).toSet
   }
 
-  def append(value: T)(using context: Dots, replicaId: LocalUid): Dotted[AppendOnlyList[T]] = {
-    val nextDot = context.nextDot(replicaId.uid)
-    Dotted(AppendOnlyList(Map(nextDot -> AppendOnlyNode(value, roots))), Dots.single(nextDot))
+  lazy val observed: Dots = Dots.from(entries.keys)
+
+  def append(value: T)(using replicaId: LocalUid): AppendOnlyList[T] = {
+    val nextDot = observed.nextDot(replicaId.uid)
+    AppendOnlyList(Map(nextDot -> AppendOnlyNode(value, roots)))
   }
 }
 

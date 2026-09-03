@@ -27,23 +27,26 @@ object RDTApp {
 
     // document.body.appendChild(webrtc.render)
 
-    document.body.appendChild:
-      all.div.render.reattach(AppDataManager.allCallback.hold((_: Any) => ()).map(_ =>
-        val state = AppDataManager.dataManager.allDeltas.reduceOption(Lattice.merge)
-        all.div(
-          all.pre(all.stringFrag(pprint.apply(state.getOrElse(null)).plainText)),
-          all.br(),
-          all.pre(all.stringFrag(pprint.apply(AppDataManager.dataManager.selfContext).plainText))
-        ).render
-      ))
+    val appResult = AppDataManager.receivedCallback.map { _ =>
+      val state = AppDataManager.dataManager.allPayloads.map(_.data).reduceOption(Lattice.merge)
+      all.div(
+        all.pre(all.stringFrag(pprint.apply(state).plainText)),
+        all.br(),
+        all.pre(all.stringFrag(pprint.apply(AppDataManager.dataManager.replicaId).plainText))
+      ).render
+    }.hold(all.span.render)
+
+    document.body.appendChild(
+      all.div.render.reattach(appResult)
+    )
 
     timer.scheduleAtFixedRate(
-      { () =>
+      () =>
         try
-          AppDataManager.dataManager.requestData()
+            AppDataManager.dataManager.tick()
         catch
-          case any => println(s"request failed: $any")
-      },
+            case any => println(s"request failed: $any")
+      ,
       1000,
       1000
     )

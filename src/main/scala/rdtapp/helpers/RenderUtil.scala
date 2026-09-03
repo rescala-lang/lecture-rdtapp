@@ -3,7 +3,6 @@ package rdtapp.helpers
 import org.scalajs.dom.UIEvent
 import org.scalajs.dom.html.Input
 import reactives.default.*
-import reactives.operator.Event.CBR
 import scalatags.JsDom.all.*
 import scalatags.JsDom.{Attr, TypedTag}
 

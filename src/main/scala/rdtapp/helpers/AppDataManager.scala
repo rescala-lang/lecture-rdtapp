@@ -1,28 +1,15 @@
 package todo
 
+import channels.BroadcastIO
 import rdtapp.{MiniSocial, MainUI}
 import rdts.base.Lattice
 import rdts.syntax.DeltaBuffer
-import reactives.operator.{Event, Fold, Signal}
-// import replication.{DataManager, ProtocolDots}
-
+import reactives.default.*
 
 object AppDataManager {
 
-  val (
-    receivedCallback: Event[MiniSocial],
-    allCallback: Event[ProtocolDots[MiniSocial]],
-    dataManager: DataManager[MiniSocial]
-  ) = {
-    val CBR(receivedCB, (allCB, dm)) = Event.fromCallback {
-      val outerCb = Event.handle[MiniSocial]
-      val CBR(allcb, dm) = Event.fromCallback {
-        val innerCB = Event.handle[ProtocolDots[MiniSocial]]
-        DataManager[MiniSocial](MainUI.replicaId, outerCb, innerCB)
-      }
-      (allcb, dm)
-    }
-    (receivedCB, allCB, dm)
+  val (receivedCallback, dataManager: BroadcastIO[MiniSocial]) = Event.fromCallback {
+    BroadcastIO[MiniSocial](MainUI.replicaId, Event.handle)
   }
 
   def hookup(init: MiniSocial)(create: (
@@ -37,8 +24,8 @@ object AppDataManager {
       unwrap: MiniSocial => Option[A]
   )(create: (DeltaBuffer[A], Fold.Branch[DeltaBuffer[A]]) => Signal[DeltaBuffer[A]]): Signal[DeltaBuffer[A]] = {
     dataManager.lock.synchronized {
-      dataManager.applyUnrelatedDelta(wrap(init))
-      val fullInit = dataManager.allDeltas.flatMap(v => unwrap(v.data)).foldLeft(init)(Lattice.merge)
+      dataManager.broadcast(wrap(init))
+      val fullInit = dataManager.allPayloads.flatMap(v => unwrap(v.data)).foldLeft(init)(Lattice.merge)
 
       val branch = Fold.branch[DeltaBuffer[A]] {
         receivedCallback.value.flatMap(unwrap) match
@@ -50,7 +37,7 @@ object AppDataManager {
 
       sig.observe { buffer =>
         buffer.deltaBuffer.foreach { delta =>
-          dataManager.applyUnrelatedDelta(wrap(delta))
+          dataManager.broadcast(wrap(delta))
         }
       }
 
